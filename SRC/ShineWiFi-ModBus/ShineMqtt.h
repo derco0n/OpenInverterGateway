@@ -1,13 +1,13 @@
-#ifndef _SHINEW_IFI_MQTT_H
-#define _SHINEW_IFI_MQTT_H
+#pragma once
+
 #include "Config.h"
 
 #if MQTT_SUPPORTED == 1
 #include <Arduino.h>
 #include "ShineWifi.h"
+#include "Growatt.h"
 #include <PubSubClient.h>
 #include <stdbool.h>
-#include "WebDebug.h"
 
 typedef struct {
   String mqttserver;
@@ -19,10 +19,13 @@ typedef struct {
 
 class ShineMqtt {
  public:
-  ShineMqtt(WiFiClient& wc) : wifiClient(wc), mqttclient(wifiClient){};
+  ShineMqtt(WiFiClient& wc, Growatt& inverter);
   void mqttSetup(const MqttConfig& config);
   bool mqttReconnect();
-  void mqttPublish(const String& JsonString);
+  boolean mqttPublish(const String& JsonString);
+  boolean mqttPublish(JsonDocument& doc, String topic = "");
+  boolean mqttEnabled();
+  void onMqttMessage(char* topic, byte* payload, unsigned int length);
   void updateMqttLed();
   void loop();
 
@@ -31,7 +34,7 @@ class ShineMqtt {
   long previousConnectTryMillis = 0;
   MqttConfig mqttconfig;
   PubSubClient mqttclient;
+  Growatt& inverter;
   static String getId();
 };
-#endif
 #endif

@@ -1,10 +1,11 @@
 #include <ModbusMaster.h>
 #include <ArduinoJson.h>
+#include <TLog.h>
 
 #include "GrowattTypes.h"
 #include "Growatt.h"
 #include "Config.h"
-#ifndef __CONFIG_H__
+#ifndef _SHINE_CONFIG_H_
 #error Please rename Config.h.example to Config.h
 #endif
 
@@ -14,6 +15,10 @@
 #include "Growatt124.h"
 #elif GROWATT_MODBUS_VERSION == 305
 #include "Growatt305.h"
+#elif GROWATT_MODBUS_VERSION == 5000
+#include "GrowattSPF.h"
+#elif GROWATT_MODBUS_VERSION == 6000
+#include "GrowattBP.h"
 #else
 #error "Unsupported Growatt Modbus version"
 #endif
@@ -24,6 +29,29 @@ ModbusMaster Modbus;
 Growatt::Growatt() {
   _eDevice = Undef_stick;
   _PacketCnt = 0;
+
+  handlers = std::map<String, CommandHandlerFunc>();
+
+  // register default handlers
+  RegisterCommand("echo", [this](const JsonDocument& req, JsonDocument& res,
+                                 Growatt& inverter) {
+    return handleEcho(req, res, *this);
+  });
+
+  RegisterCommand("list", [this](const JsonDocument& req, JsonDocument& res,
+                                 Growatt& inverter) {
+    return handleCommandList(req, res, *this);
+  });
+
+  RegisterCommand("modbus/get", [this](const JsonDocument& req,
+                                       JsonDocument& res, Growatt& inverter) {
+    return handleModbusGet(req, res, *this);
+  });
+
+  RegisterCommand("modbus/set", [this](const JsonDocument& req,
+                                       JsonDocument& res, Growatt& inverter) {
+    return handleModbusSet(req, res, *this);
+  });
 }
 
 void Growatt::InitProtocol() {
@@ -32,11 +60,15 @@ void Growatt::InitProtocol() {
  * @param version The version of the modbus protocol to use
  */
 #if GROWATT_MODBUS_VERSION == 120
-  init_growatt120(_Protocol);
+  init_growatt120(_Protocol, *this);
 #elif GROWATT_MODBUS_VERSION == 124
-  init_growatt124(_Protocol);
+  init_growatt124(_Protocol, *this);
 #elif GROWATT_MODBUS_VERSION == 305
-  init_growatt305(_Protocol);
+  init_growatt305(_Protocol, *this);
+#elif GROWATT_MODBUS_VERSION == 5000
+  init_growattSPF(_Protocol, *this);
+#elif GROWATT_MODBUS_VERSION == 6000
+  init_growattBP(_Protocol, *this);
 #else
 #error "Unsupported Growatt Modbus version"
 #endif
@@ -47,11 +79,10 @@ void Growatt::begin(Stream& serial) {
    * @brief Set up communication with the inverter
    * @param serial The serial interface
    */
-  uint8_t res;
-
 #if SIMULATE_INVERTER == 1
   _eDevice = SIMULATE_DEVICE;
 #else
+  uint8_t res;
   // init communication with the inverter
   Serial.begin(9600);
   Modbus.begin(1, serial);
@@ -90,10 +121,18 @@ bool Growatt::ReadInputRegisters() {
 
   // read each fragment separately
   for (int i = 0; i < _Protocol.InputFragmentCount; i++) {
+#ifdef DEBUG_MODBUS_OUTPUT
+    Log.printf("Modbus: read Segment from 0x%02X with len: %d ...",
+               _Protocol.InputReadFragments[i].StartAddress,
+               _Protocol.InputReadFragments[i].FragmentSize);
+#endif
     res =
         Modbus.readInputRegisters(_Protocol.InputReadFragments[i].StartAddress,
                                   _Protocol.InputReadFragments[i].FragmentSize);
     if (res == Modbus.ku8MBSuccess) {
+#ifdef DEBUG_MODBUS_OUTPUT
+      Log.println(F("ok"));
+#endif
       for (int j = 0; j < _Protocol.InputRegisterCount; j++) {
         // make sure the register we try to read is in the fragment
         if (_Protocol.InputRegisters[j].address >=
@@ -108,7 +147,8 @@ bool Growatt::ReadInputRegisters() {
           // 13
           registerAddress = _Protocol.InputRegisters[j].address -
                             _Protocol.InputReadFragments[i].StartAddress;
-          if (_Protocol.InputRegisters[j].size == SIZE_16BIT) {
+          if (_Protocol.InputRegisters[j].size == SIZE_16BIT ||
+              _Protocol.InputRegisters[j].size == SIZE_16BIT_S) {
             _Protocol.InputRegisters[j].value =
                 Modbus.getResponseBuffer(registerAddress);
           } else {
@@ -119,6 +159,9 @@ bool Growatt::ReadInputRegisters() {
         }
       }
     } else {
+#ifdef DEBUG_MODBUS_OUTPUT
+      Log.println(F("failed"));
+#endif
       return false;
     }
   }
@@ -148,7 +191,8 @@ bool Growatt::ReadHoldingRegisters() {
             break;
           registerAddress = _Protocol.HoldingRegisters[j].address -
                             _Protocol.HoldingReadFragments[i].StartAddress;
-          if (_Protocol.HoldingRegisters[j].size == SIZE_16BIT) {
+          if (_Protocol.HoldingRegisters[j].size == SIZE_16BIT ||
+              _Protocol.HoldingRegisters[j].size == SIZE_16BIT_S) {
             _Protocol.HoldingRegisters[j].value =
                 Modbus.getResponseBuffer(registerAddress);
           } else {
@@ -202,43 +246,112 @@ sGrowattModbusReg_t Growatt::GetHoldingRegister(uint16_t reg) {
 }
 
 bool Growatt::ReadHoldingReg(uint16_t adr, uint16_t* result) {
-  /**
-   * @brief read 16b holding register
-   * @param adr address of the register
-   * @param result pointer to the result
-   * @returns true if successful
-   */
+/**
+ * @brief read 16b holding register
+ * @param adr address of the register
+ * @param result pointer to the result
+ * @returns true if successful
+ */
+#if SIMULATE_INVERTER != 1
   uint8_t res = Modbus.readHoldingRegisters(adr, 1);
   if (res == Modbus.ku8MBSuccess) {
     *result = Modbus.getResponseBuffer(0);
     return true;
   }
   return false;
+#else
+  *result = 0;
+  return true;
+#endif
 }
 
 bool Growatt::ReadHoldingReg(uint16_t adr, uint32_t* result) {
-  /**
-   * @brief read 32b holding register
-   * @param adr address of the register
-   * @param result pointer to the result
-   * @returns true if successful
-   */
+/**
+ * @brief read 32b holding register
+ * @param adr address of the register
+ * @param result pointer to the result
+ * @returns true if successful
+ */
+#if SIMULATE_INVERTER != 1
   uint8_t res = Modbus.readHoldingRegisters(adr, 2);
   if (res == Modbus.ku8MBSuccess) {
     *result = (Modbus.getResponseBuffer(0) << 16) + Modbus.getResponseBuffer(1);
     return true;
   }
   return false;
+#else
+  *result = 0;
+  return true;
+#endif
+}
+
+bool Growatt::ReadHoldingRegFrag(uint16_t adr, uint8_t size, uint16_t* result) {
+  /**
+   * @brief read 16b holding register fragment
+   * @param adr address of the register
+   * @param size size of the register
+   * @param result pointer to the result
+   * @returns true if successful
+   */
+  uint8_t res = Modbus.readHoldingRegisters(adr, size);
+  if (res == Modbus.ku8MBSuccess) {
+    for (int i = 0; i < size; i++) {
+      result[i] = Modbus.getResponseBuffer(i);
+    }
+    return true;
+  }
+  return false;
+}
+
+bool Growatt::ReadHoldingRegFrag(uint16_t adr, uint8_t size, uint32_t* result) {
+  /**
+   * @brief read 32b holding register fragment
+   * @param adr address of the register
+   * @param size size of the register
+   * @param result pointer to the result
+   * @returns true if successful
+   */
+  uint8_t res = Modbus.readHoldingRegisters(adr, size * 2);
+  if (res == Modbus.ku8MBSuccess) {
+    for (int i = 0; i < size; i++) {
+      result[i] = (Modbus.getResponseBuffer(i * 2) << 16) +
+                  Modbus.getResponseBuffer(i * 2 + 1);
+    }
+    return true;
+  }
+  return false;
 }
 
 bool Growatt::WriteHoldingReg(uint16_t adr, uint16_t value) {
+/**
+ * @brief write 16b holding register
+ * @param adr address of the register
+ * @param value value to write to the register
+ * @returns true if successful
+ */
+#if SIMULATE_INVERTER != 1
+  uint8_t res = Modbus.writeSingleRegister(adr, value);
+  if (res == Modbus.ku8MBSuccess) {
+    return true;
+  }
+  return false;
+#else
+  return true;
+#endif
+}
+
+bool Growatt::WriteHoldingRegFrag(uint16_t adr, uint8_t size, uint16_t* value) {
   /**
    * @brief write 16b holding register
    * @param adr address of the register
    * @param value value to write to the register
+   * @param size size of the register
    * @returns true if successful
    */
-  uint8_t res = Modbus.writeSingleRegister(adr, value);
+  for (int i = 0; i < size; i++) {
+    Modbus.setTransmitBuffer(i, value[i]);
+  }
+  uint8_t res = Modbus.writeMultipleRegisters(adr, size);
   if (res == Modbus.ku8MBSuccess) {
     return true;
   }
@@ -246,67 +359,86 @@ bool Growatt::WriteHoldingReg(uint16_t adr, uint16_t value) {
 }
 
 bool Growatt::ReadInputReg(uint16_t adr, uint16_t* result) {
-  /**
-   * @brief read 16b input register
-   * @param adr address of the register
-   * @param result pointer to the result
-   * @returns true if successful
-   */
+/**
+ * @brief read 16b input register
+ * @param adr address of the register
+ * @param result pointer to the result
+ * @returns true if successful
+ */
+#if SIMULATE_INVERTER != 1
   uint8_t res = Modbus.readInputRegisters(adr, 1);
   if (res == Modbus.ku8MBSuccess) {
     *result = Modbus.getResponseBuffer(0);
     return true;
   }
   return false;
+#else
+  *result = 0;
+  return true;
+#endif
 }
 
 bool Growatt::ReadInputReg(uint16_t adr, uint32_t* result) {
-  /**
-   * @brief read 32b input register
-   * @param adr address of the register
-   * @param result pointer to the result
-   * @returns true if successful
-   */
+/**
+ * @brief read 32b input register
+ * @param adr address of the register
+ * @param result pointer to the result
+ * @returns true if successful
+ */
+#if SIMULATE_INVERTER != 1
   uint8_t res = Modbus.readInputRegisters(adr, 2);
   if (res == Modbus.ku8MBSuccess) {
     *result = (Modbus.getResponseBuffer(0) << 16) + Modbus.getResponseBuffer(1);
     return true;
   }
   return false;
+#else
+  *result = 0;
+  return true;
+#endif
 }
 
-double Growatt::_round2(double value) {
-  return (int)(value * 100 + 0.5) / 100.0;
+double Growatt::roundByResolution(const double& value,
+                                  const float& resolution) {
+  double res = 1 / resolution;
+  return int32_t(value * res + 0.5) / res;
 }
 
-void Growatt::CreateJson(char* Buffer, const char* MacAddress) {
-  StaticJsonDocument<2048> doc;
+double Growatt::getRegValue(sGrowattModbusReg_t* reg) {
+  double result = 0;
+  RegisterSize_t size = reg->size;
+  const float& mult = reg->multiplier;
+  const uint32_t& value = reg->value;
+  const float& resolution = reg->resolution;
 
+  switch (size) {
+    case SIZE_16BIT_S:
+      result = (mult == (int)mult)
+                   ? (int16_t)value * mult
+                   : roundByResolution((int16_t)value * mult, resolution);
+      break;
+    case SIZE_32BIT_S:
+      result = (mult == (int)mult)
+                   ? (int32_t)value * mult
+                   : roundByResolution((int32_t)value * mult, resolution);
+      break;
+    default:
+      result = (mult == (int)mult)
+                   ? value * mult
+                   : roundByResolution(value * mult, resolution);
+  }
+  return result;
+}
+
+void Growatt::CreateJson(ShineJsonDocument& doc, String MacAddress) {
 #if SIMULATE_INVERTER != 1
-  for (int i = 0; i < _Protocol.InputRegisterCount; i++) {
-    if (_Protocol.InputRegisters[i].multiplier ==
-        (int)_Protocol.InputRegisters[i].multiplier) {
-      doc[_Protocol.InputRegisters[i].name] =
-          _Protocol.InputRegisters[i].value *
-          _Protocol.InputRegisters[i].multiplier;
-    } else {
-      doc[_Protocol.InputRegisters[i].name] =
-          _round2(_Protocol.InputRegisters[i].value *
-                  _Protocol.InputRegisters[i].multiplier);
-    }
-  }
-  for (int i = 0; i < _Protocol.HoldingRegisterCount; i++) {
-    if (_Protocol.HoldingRegisters[i].multiplier ==
-        (int)_Protocol.HoldingRegisters[i].multiplier) {
-      doc[_Protocol.HoldingRegisters[i].name] =
-          _Protocol.HoldingRegisters[i].value *
-          _Protocol.HoldingRegisters[i].multiplier;
-    } else {
-      doc[_Protocol.HoldingRegisters[i].name] =
-          _round2(_Protocol.HoldingRegisters[i].value *
-                  _Protocol.HoldingRegisters[i].multiplier);
-    }
-  }
+  for (int i = 0; i < _Protocol.InputRegisterCount; i++)
+    doc[_Protocol.InputRegisters[i].name] =
+        getRegValue(&_Protocol.InputRegisters[i]);
+
+  for (int i = 0; i < _Protocol.HoldingRegisterCount; i++)
+    doc[_Protocol.HoldingRegisters[i].name] =
+        getRegValue(&_Protocol.HoldingRegisters[i]);
 #else
 #warning simulating the inverter
   doc["Status"] = 1;
@@ -321,19 +453,17 @@ void Growatt::CreateJson(char* Buffer, const char* MacAddress) {
   doc["OperatingTime"] = 123456;
   doc["Temperature"] = 21.12;
   doc["AccumulatedEnergy"] = 320;
-  doc["EnergyToday"] = 0.3;
-  doc["EnergyToday"] = 0.3;
 #endif  // SIMULATE_INVERTER
   doc["Mac"] = MacAddress;
   doc["Cnt"] = _PacketCnt;
-  serializeJson(doc, Buffer, MQTT_MAX_PACKET_SIZE);
 }
 
-void Growatt::CreateUIJson(char* Buffer) {
-  StaticJsonDocument<2048> doc;
-  const char* unitStr[] = {"", "W", "kWh", "V", "A", "s", "%", "Hz", "C"};
-
+void Growatt::CreateUIJson(ShineJsonDocument& doc) {
 #if SIMULATE_INVERTER != 1
+  const char* unitStr[] = {"", "W", "kWh", "V", "A", "s", "%", "Hz", "°C"};
+  const char* statusStr[] = {"(Waiting)", "(Normal Operation)", "", "(Error)"};
+  const int statusStrLength = sizeof(statusStr) / sizeof(char*);
+
   for (int i = 0; i < _Protocol.InputRegisterCount; i++) {
     if (_Protocol.InputRegisters[i].frontend == true ||
         _Protocol.InputRegisters[i].plot == true) {
@@ -345,11 +475,18 @@ void Growatt::CreateUIJson(char* Buffer) {
         arr.add(_Protocol.InputRegisters[i].value *
                 _Protocol.InputRegisters[i].multiplier);
       } else {
-        arr.add(_round2(_Protocol.InputRegisters[i].value *
-                        _Protocol.InputRegisters[i].multiplier));
+        arr.add(roundByResolution(_Protocol.InputRegisters[i].value *
+                                      _Protocol.InputRegisters[i].multiplier,
+                                  _Protocol.InputRegisters[i].resolution));
       }
-      arr.add(unitStr[_Protocol.InputRegisters[i].unit]);  // unit
-      arr.add(_Protocol.InputRegisters[i].plot);           // should be plotted
+      if (String(_Protocol.InputRegisters[i].name) == F("InverterStatus") &&
+          _Protocol.InputRegisters[i].value < statusStrLength) {
+        arr.add(statusStr[_Protocol.InputRegisters[i].value]);  // use unit for
+                                                                // status
+      } else {
+        arr.add(unitStr[_Protocol.InputRegisters[i].unit]);  // unit
+      }
+      arr.add(_Protocol.InputRegisters[i].plot);  // should be plotted
     }
   }
   for (int i = 0; i < _Protocol.HoldingRegisterCount; i++) {
@@ -363,10 +500,17 @@ void Growatt::CreateUIJson(char* Buffer) {
         arr.add(_Protocol.HoldingRegisters[i].value *
                 _Protocol.HoldingRegisters[i].multiplier);
       } else {
-        arr.add(_round2(_Protocol.HoldingRegisters[i].value *
-                        _Protocol.HoldingRegisters[i].multiplier));
+        arr.add(roundByResolution(_Protocol.HoldingRegisters[i].value *
+                                      _Protocol.HoldingRegisters[i].multiplier,
+                                  _Protocol.HoldingRegisters[i].resolution));
       }
-      arr.add(unitStr[_Protocol.HoldingRegisters[i].unit]);
+      if (String(_Protocol.HoldingRegisters[i].name) == F("InverterStatus") &&
+          _Protocol.HoldingRegisters[i].value < statusStrLength) {
+        arr.add(statusStr[_Protocol.HoldingRegisters[i].value]);  // use unit
+                                                                  // for status
+      } else {
+        arr.add(unitStr[_Protocol.HoldingRegisters[i].unit]);  // unit
+      }
       arr.add(_Protocol.HoldingRegisters[i].plot);  // should be plotted
     }
   }
@@ -374,7 +518,7 @@ void Growatt::CreateUIJson(char* Buffer) {
 #warning simulating the inverter
   JsonArray arr = doc.createNestedArray("Status");
   arr.add(1);
-  arr.add("");
+  arr.add("(Normal Operation)");
   arr.add(false);
   arr = doc.createNestedArray("DcPower");
   arr.add(230);
@@ -420,11 +564,248 @@ void Growatt::CreateUIJson(char* Buffer) {
   arr.add(320);
   arr.add("kWh");
   arr.add(false);
-  arr = doc.createNestedArray("EnergyToday");
-  arr.add(0.3);
-  arr.add("kWh");
-  arr.add(false);
 #endif  // SIMULATE_INVERTER
+}
 
-  serializeJson(doc, Buffer, 4096);
+void Growatt::camelCaseToSnakeCase(String input, char* output) {
+  int outputIndex = 0;
+  for (int i = 0; input[i] != '\0'; i++) {
+    if (i > 0 && i < input.length() - 1 && isUpperCase(input[i]) &&
+        (isLowerCase(input[i - 1]) || isLowerCase(input[i + 1]))) {
+      output[outputIndex++] = '_';
+    }
+    output[outputIndex++] = toLowerCase(input[i]);
+  }
+  output[outputIndex] = '\0';
+}
+
+void Growatt::metricsAddValue(String name, double value, StringStream& metrics,
+                              String MacAddress) {
+  char nameSnakeCase[name.length() + 10];
+  camelCaseToSnakeCase(name, nameSnakeCase);
+
+  metrics.print("growatt_");
+  metrics.print(nameSnakeCase);
+  metrics.print("{mac=\"");
+  metrics.print(MacAddress);
+  metrics.printf("\"} %g\n", value);
+}
+
+void Growatt::CreateMetrics(StringStream& metrics, String MacAddress) {
+#if SIMULATE_INVERTER != 1
+  for (int i = 0; i < _Protocol.InputRegisterCount; i++)
+    metricsAddValue(_Protocol.InputRegisters[i].name,
+                    getRegValue(&_Protocol.InputRegisters[i]), metrics,
+                    MacAddress);
+
+  for (int i = 0; i < _Protocol.HoldingRegisterCount; i++)
+    metricsAddValue(_Protocol.HoldingRegisters[i].name,
+                    getRegValue(&_Protocol.HoldingRegisters[i]), metrics,
+                    MacAddress);
+
+#else
+#warning simulating the inverter
+  metricsAddValue("Status", 1, metrics, MacAddress);
+  metricsAddValue("DcPower", 230, metrics, MacAddress);
+  metricsAddValue("DcVoltage", 70.5, metrics, MacAddress);
+  metricsAddValue("DcInputCurrent", 8.5, metrics, MacAddress);
+  metricsAddValue("AcFreq", 50.00, metrics, MacAddress);
+  metricsAddValue("AcVoltage", 230.0, metrics, MacAddress);
+  metricsAddValue("AcPower", 0.00, metrics, MacAddress);
+  metricsAddValue("EnergyToday", 0.3, metrics, MacAddress);
+  metricsAddValue("EnergyTotal", 49.1, metrics, MacAddress);
+  metricsAddValue("OperatingTime", 123456, metrics, MacAddress);
+  metricsAddValue("Temperature", 21.12, metrics, MacAddress);
+  metricsAddValue("AccumulatedEnergy", 320, metrics, MacAddress);
+#endif  // SIMULATE_INVERTER
+  metricsAddValue("Cnt", _PacketCnt, metrics, MacAddress);
+}
+
+void Growatt::RegisterCommand(const String& command,
+                              CommandHandlerFunc handler) {
+  handlers[command] = handler;
+}
+
+void Growatt::HandleCommand(const String& command, const byte* payload,
+                            const unsigned int length, JsonDocument& req,
+                            JsonDocument& res) {
+  String correlationId = "";
+  DeserializationError deserializationErr =
+      deserializeJson(req, payload, length);
+
+  bool success;
+  String message;
+  if (deserializationErr) {
+    Log.println("Failed to parse JSON request in command '" + command +
+                "': " + String(deserializationErr.c_str()));
+    success = false;
+    message =
+        "Failed to parse JSON request: " + String(deserializationErr.c_str());
+  } else {
+    if (req.containsKey("correlationId")) {
+      res["correlationId"] = String(req["correlationId"].as<String>());
+    }
+
+    auto it = handlers.find(command.c_str());
+    if (it != handlers.end()) {
+      Log.println("Handling command: " + command);
+      std::tie(success, message) = it->second(req, res, *this);
+    } else {
+      Log.println("Unknown command: " + command);
+      success = false;
+      message = "Unknown command: " + command;
+    }
+  }
+
+  res["command"] = command;
+  res["success"] = success;
+  res["message"] = message;
+}
+
+std::tuple<bool, String> Growatt::handleEcho(const JsonDocument& req,
+                                             JsonDocument& res,
+                                             Growatt& inverter) {
+  if (!req.containsKey("text")) {
+    return std::make_tuple(false, "'text' field is required");
+  }
+  String text = req["text"].as<String>();
+  res["text"] = "Echo: " + text;
+  return std::make_tuple(true, "");
+}
+
+std::tuple<bool, String> Growatt::handleCommandList(const JsonDocument& req,
+                                                    JsonDocument& res,
+                                                    Growatt& inverter) {
+  JsonArray commands = res.createNestedArray("commands");
+  for (auto it = handlers.begin(); it != handlers.end(); ++it) {
+    commands.add(it->first);
+  }
+  return std::make_tuple(true, "");
+}
+
+std::tuple<bool, String> Growatt::handleModbusGet(const JsonDocument& req,
+                                                  JsonDocument& res,
+                                                  Growatt& inverter) {
+  if (!req.containsKey("id")) {
+    return std::make_tuple(false, "'id' field is required");
+  }
+
+#if SIMULATE_INVERTER != 1
+  uint16_t id = req["id"].as<uint16_t>();
+#endif
+
+  if (!req.containsKey("type")) {
+    return std::make_tuple(false, "'type' field is required");
+  }
+
+  String type = req["type"].as<String>();
+
+  if (type != "16b" && type != "32b") {
+    return std::make_tuple(false, "'type' must be '16b' or '32b'");
+  }
+
+  if (!req.containsKey("registerType")) {
+    return std::make_tuple(false, "'registerType' field is required");
+  }
+
+  String registerType = req["registerType"].as<String>();
+
+  if (registerType != "H" && registerType != "I") {
+    return std::make_tuple(
+        false, "'registerType' must be 'H' (holding) or 'I' (input)");
+  }
+
+#if SIMULATE_INVERTER != 1
+  if (type == "16b") {
+    uint16_t value;
+    if (registerType == "H") {
+      if (!inverter.ReadHoldingReg(id, &value)) {
+        return std::make_tuple(false, "Failed to read holding register");
+      }
+    } else {
+      if (!inverter.ReadInputReg(id, &value)) {
+        return std::make_tuple(false, "Failed to read input register");
+      }
+    }
+    res["value"] = value;
+  } else {
+    uint32_t value;
+    if (registerType == "H") {
+      if (!inverter.ReadHoldingReg(id, &value)) {
+        return std::make_tuple(false, "Failed to read holding register");
+      }
+    } else {
+      if (!inverter.ReadInputReg(id, &value)) {
+        return std::make_tuple(false, "Failed to read input register");
+      }
+    }
+    res["value"] = value;
+  }
+#else
+  if (type == "16b") {
+    res["value"] = 16;
+  } else {
+    res["value"] = 32;
+  }
+#endif
+
+  return std::make_tuple(true, "success");
+}
+
+std::tuple<bool, String> Growatt::handleModbusSet(const JsonDocument& req,
+                                                  JsonDocument& res,
+                                                  Growatt& inverter) {
+  if (!req.containsKey("id")) {
+    return std::make_tuple(false, "'id' field is required");
+  }
+
+#if SIMULATE_INVERTER != 1
+  uint16_t id = req["id"].as<uint16_t>();
+#endif
+
+  if (!req.containsKey("type")) {
+    return std::make_tuple(false, "'type' field is required");
+  }
+
+  String type = req["type"].as<String>();
+
+  if (type == "32b") {
+    return std::make_tuple(
+        false, "writing to double (32b) registers is not currently supported");
+  }
+
+  if (type != "16b") {
+    return std::make_tuple(false, "'type' must be '16b'");
+  }
+
+  if (!req.containsKey("registerType")) {
+    return std::make_tuple(false, "'registerType' field is required");
+  }
+
+  String registerType = req["registerType"].as<String>();
+
+  if (registerType == "I") {
+    return std::make_tuple(false,
+                           "it is not possible to write into input registers");
+  }
+
+  if (registerType != "H") {
+    return std::make_tuple(false, "'registerType' must be 'H' (holding)");
+  }
+
+  if (!req.containsKey("value")) {
+    return std::make_tuple(false, "'value' field is required");
+  }
+
+#if SIMULATE_INVERTER != 1
+  uint16_t value = req["value"].as<uint16_t>();
+#endif
+
+#if SIMULATE_INVERTER != 1
+  if (!inverter.WriteHoldingReg(id, value)) {
+    return std::make_tuple(false, "failed to write holding register");
+  }
+#endif
+
+  return std::make_tuple(true, "success");
 }

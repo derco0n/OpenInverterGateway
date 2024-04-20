@@ -1,7 +1,7 @@
-#ifndef _GROWATT_1_20_H_
-#define _GROWATT_1_20_H_
+#pragma once
 
 #include "Arduino.h"
+#include "Growatt.h"
 #include "GrowattTypes.h"
 
 // Growatt modbus protocol version 1.20
@@ -87,6 +87,4 @@ typedef enum {
   LASTHolding
 } eP120HoldingRegisters_t;
 
-void init_growatt120(sProtocolDefinition_t &Protocol);
-
-#endif  // _GROWATT_1_20_H_
+void init_growatt120(sProtocolDefinition_t &Protocol, Growatt &inverter);

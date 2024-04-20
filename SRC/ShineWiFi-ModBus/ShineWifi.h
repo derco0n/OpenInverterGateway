@@ -1,5 +1,4 @@
-#ifndef GROWATT_SHINEWIFI_S_SHINEWIFI_H
-#define GROWATT_SHINEWIFI_S_SHINEWIFI_H
+#pragma once
 
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
@@ -22,4 +21,4 @@ extern WiFiClientSecure espClient;
 extern WiFiClient espClient;
 #endif
 
-#endif
+bool ShineWifiDisconnect();

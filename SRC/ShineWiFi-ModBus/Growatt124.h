@@ -1,7 +1,8 @@
-#ifndef _GROWATT_1_24_H_
-#define _GROWATT_1_24_H_
+#pragma once
 
 #include "Arduino.h"
+
+#include "Growatt.h"
 #include "GrowattTypes.h"
 
 // Growatt modbus protocol version 1.24 from 2020-08-04
@@ -58,8 +59,8 @@ typedef enum {
   P124_ECHARGE_TOTAL,
   P124_ETOLOCALLOAD_TODAY,
   P124_ETOLOCALLOAD_TOTAL,
+  P124_ACCHARGE_TODAY,
+  P124_ACCHARGE_TOTAL,
 } eP124InputRegisters_t;
 
-void init_growatt124(sProtocolDefinition_t &Protocol);
-
-#endif  // _GROWATT_1_24_H_
+void init_growatt124(sProtocolDefinition_t &Protocol, Growatt &inverter);

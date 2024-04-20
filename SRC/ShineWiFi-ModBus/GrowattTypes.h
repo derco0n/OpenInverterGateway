@@ -1,5 +1,12 @@
-#ifndef _GROWATT_TYPES_H_
-#define _GROWATT_TYPES_H_
+#pragma once
+#include "Arduino.h"
+#include <ArduinoJson.h>
+#include <StreamUtils.h>
+
+#define JSON_DOCUMENT_SIZE 2048
+#define BUFFER_SIZE 256
+
+typedef StaticJsonDocument<JSON_DOCUMENT_SIZE> ShineJsonDocument;
 
 typedef enum {
   Undef_stick = 0,
@@ -35,7 +42,7 @@ typedef enum {
   VOLTAGE,
   CURRENT,
   SECONDS,
-  PRECENTAGE,
+  PERCENTAGE,
   FREQUENCY,
   TEMPERATURE,
   VA,
@@ -44,14 +51,17 @@ typedef enum {
 typedef enum {
   SIZE_16BIT,
   SIZE_32BIT,
+  SIZE_16BIT_S,
+  SIZE_32BIT_S,
 } RegisterSize_t;
 
 typedef struct {
   uint16_t address;
   uint32_t value;
   RegisterSize_t size;
-  char name[64];
+  const __FlashStringHelper* name;
   float multiplier;
+  float resolution;
   RegisterUnit_t unit;
   bool frontend;
   bool plot;
@@ -74,5 +84,3 @@ typedef struct {
   sGrowattReadFragment_t InputReadFragments[10];
   sGrowattReadFragment_t HoldingReadFragments[10];
 } sProtocolDefinition_t;
-
-#endif  // _GROWATT_TYPES_H_
