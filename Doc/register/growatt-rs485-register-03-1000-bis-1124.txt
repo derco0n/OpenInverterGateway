@@ -1,0 +1,500 @@
+IP Address	127.0.0.1	4	charge current limit	1000	25	0103FA001900000073003201D6023F007300910205044C02BC044C02580000000C000000010000000000000000000000000000000000000000000000000000000000000007000000000000000000030000000A000A003200320000000000640064000000010000000000000000000000000000000000000000000000010000000000000000000000000000000000000064000A0000000000000000000000000000000000000000000000000000000000000000000000000064003200000000000000000000000000000000050007000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000082C8
+Port	5000	4	PF memory state	1001	0	
+mode	1	4	VbatStartForDischarge	1002	115	
+Slave ID	1	4	VbatlowWarnClr	1003	50	
+First Register	1000	4	Vbatstopfordischarge	1004	470	
+No. of Registers	125	4	Vbat stop for charge	1005	575	
+Record size	5	4	Vbat start for discharge	1006	115	
+byte order	1	4	Vbatconstantcharge	1007	145	
+word order	1	4	EESysInfo.SysSetEn	1008	517	
+autoset	0	3	Battemp lower limit d	1009	1100	
+Function Code	3	4	Bat temp upper limit d	1010	700	
+register size	1	4	Bat temp lower limit c	1011	1100	
+offset	0	4	Bat temp upper limit c	1012	600	
+Events	0	4	ForcedDischarge Min Start1	1013	0	
+History	0	4	ForcedDischarge Hour Start1	1014	12	
+2 byte addr	0	4	ForcedDischarge Min Start2	1015	0	
+fail in	5	4	ForcedDischarge Hour Start2	1016	1	
+pause	10	4	ForcedDischarge Min Start3	1017	0	
+start	0	4	ForcedDischarge Hour Start3	1018	0	
+loadB4send	0	4	ForcedDischarge Min Stop1	1019	0	
+Log Results	0	4	ForcedDischarge Hour Stop1	1020	0	
+quit	0	4	ForcedDischarge Min Stop2	1021	0	
+		4	ForcedDischarge Hour Stop2	1022	0	
+		4	ForcedDischarge Min Stop3	1023	0	
+		4	ForcedDischarge Hour Stop3	1024	0	
+		4	ForcedCharge Min Start1	1025	0	
+		4	ForcedCharge Hour Start1	1026	0	
+		4	ForcedCharge Min Start2	1027	0	
+		4	ForcedCharge Hour Start2	1028	0	
+		4	ForcedCharge Min Start3	1029	0	
+		4	ForcedCharge Hour Start3	1030	0	
+		4	ForcedCharge Min Stop1	1031	0	
+		4	ForcedCharge Hour Stop1	1032	7	
+		4	ForcedChargde Min Stop2	1033	0	
+		4	ForcedCharge Hour Stop2	1034	0	
+		4	ForcedCharge Min Stop3	1035	0	
+		4	ForcedCharge Hour Stop3	1036	0	
+		4	bCTMode	1037	3	
+		4	CTAdjust	1038	0	
+		4	wDisChargeSOCLowLimit1	1039	10	
+		4	wDisChargeSOCLowLimit2	1040	10	
+		4	wChargeSOCLowLimit1	1041	50	
+		4	wChargeSOCLowLimit2	1042	50	
+		4	AC Charge Enable	1043	0	
+		4	Priority	1044	0	
+		4	ChargePowerCommand	1045	100	
+		4	DisChargePowerCommand	1046	100	
+		4	bAgingTestStep	1047	0	
+		4	wBatteryType	1048	1	
+		4	unused	1049	0	
+		4		1050	0	
+		4		1051	0	
+		4		1052	0	
+		4		1053	0	
+		4		1054	0	
+		4		1055	0	
+		4		1056	0	
+		4		1057	0	
+		4		1058	0	
+		4		1059	0	
+		4		1060	1	
+		4		1061	0	
+		4		1062	0	
+		4		1063	0	
+		4		1064	0	
+		4		1065	0	
+		4		1066	0	
+		4		1067	0	
+		4		1068	0	
+		4		1069	0	
+		4	GridFirstDischargePowerRate	1070	100	
+		4	GridFirstStopSOC	1071	10	
+		4	unused	1072	0	
+		4	unused	1073	0	
+		4	unused	1074	0	
+		4	unused	1075	0	
+		4	unused	1076	0	
+		4	unused	1077	0	
+		4	unused	1078	0	
+		4	unused	1079	0	
+		4	Grid First Start Time 1	1080	0	
+		4	Grid First Stop Time 1	1081	0	
+		4	Grid First Stop Switch 1	1082	0	
+		4	Grid First Start Time 2	1083	0	
+		4	Grid First Stop Time 2	1084	0	
+		4	Grid First Stop Switch 2	1085	0	
+		4	Grid First Start Time 3	1086	0	
+		4	Grid First Stop Time 3	1087	0	
+		4	Grid First Stop Switch 3	1088	0	
+		4	unused	1089	0	
+		4	BatFirstPowerRate	1090	100	
+		4	wBatFirst stop SOC	1091	50	
+		4	AC charge Switch	1092	0	
+		4	unused	1093	0	
+		4	unused	1094	0	
+		4	unused	1095	0	
+		4	unused	1096	0	
+		4	unused	1097	0	
+		4	unused	1098	0	
+		4	unused	1099	0	
+		4	Bat First Start Time 1	1100	1280	
+		4	Bat First Stop Time 1	1101	1792	
+		4	BatFirst on/off Switch 1	1102	0	
+		4	Bat First Start Time 2	1103	0	
+		4	Bat First Stop Time 2	1104	0	
+		4	BatFirston/off Switch 2	1105	0	
+		4	Bat First Start Time 3	1106	0	
+		4	Bat First Stop Time 3	1107	0	
+		4	BatFirston/off Switch 3	1108	0	
+		4	unused	1109	0	
+		4	Load First Start Time 1	1110	0	
+		4	Load First Stop Time 1	1111	0	
+		4	Load First Switch 1	1112	0	
+		4	Load First Start Time2	1113	0	
+		4	Load First Stop Time 2	1114	0	
+		4	Load First Switch 2	1115	0	
+		4	Load First Start Time 3	1116	0	
+		4	Load First Stop Time 3	1117	0	
+		4	Load First Switch 3	1118	0	
+		4	unused	1119	1	
+		4	unused	1120	0	
+		4	unused	1121	0	
+		4	unused	1122	0	
+		4	unused	1123	0	
+		4	unused	1124	0	
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				

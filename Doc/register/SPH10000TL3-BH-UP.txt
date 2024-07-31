@@ -1,0 +1,26 @@
+# Important Modbus Registers for RS485 on SPH 10000 TL3-BH-UP
+
+## external links:
+- [https://www.photovoltaikforum.com/core/attachment/265072-pdfcoffee-com-growatt-inverter-modbus-rtu-protocolii-v120-english-pdf-free-pdf/](https://www.photovoltaikforum.com/core/attachment/265072-pdfcoffee-com-growatt-inverter-modbus-rtu-protocolii-v120-english-pdf-free-pdf/)
+- [https://www.photovoltaikforum.com/thread/192228-growatt-sph-modbus-rtu-rj45-pinout-und-register-beschreibung/?pageNo=1](https://www.photovoltaikforum.com/thread/192228-growatt-sph-modbus-rtu-rj45-pinout-und-register-beschreibung/?pageNo=1)
+- [https://github.com/nygma2004/growatt2mqtt/blob/main/Growatt%20PV%20Inverter%20Modbus%20RS485%20RTU%20Protocol%20v120.pdf](https://github.com/nygma2004/growatt2mqtt/blob/main/Growatt%20PV%20Inverter%20Modbus%20RS485%20RTU%20Protocol%20v120.pdf)
+
+## Ranges on SPH-Series
+- Register 03: 0-124,1000-1124
+- Register 04: 0-124,1000-1124
+
+
+|Mode|Description|Register Type|Register Number|Unit/Info|
+|---|---|---|---|---|
+|Read|Battery min SoC on Bat. First mode|Holding|608|%|
+|Read/Write|Battery max SoC|Holding|1091|%|
+|Read|Battery momentary SoC|Input|1014|%|
+|Read|System work mode|Input|1000|Value 1-5|
+|Read|Battery momentary temperature|input|1089|0.1 °C|
+|Read|Battery type|Input|119|0=Lead Acid, 1=Lithium|
+|Read|Priority|Input|118|0=Load First, 1=Battery First, 2=Grid First|
+|Write|Priority|Holding|1044|0=Load first, 1=Battery First, 2=Grid First - not available! Value not taken on write!|
+|Read/Write|Battery First On/Off Timer 1|Holding|1102|1=On, 0=Off|
+|Read/Write|Battery First On/Off Timer 2|Holding|1105|1=On, 0=Off|
+|Read/Write|Battery First On/Off Timer 3|Holding|1108|1=On, 0=Off|
+

@@ -1,0 +1,501 @@
+IP Address	127.0.0.1	4	System work mode	1000	6	0104FA000600000000000000000020000000000C00000000000000000013EC000A00001130006100D2008B00000000113000000000006100F000940000000000000000113000000000001E0009000011300000010400061B8800FA000000160000022B00000000000000050000000E000000F500000001000001C20000002300000267000000000000000008FB000000000000090700000000000008E1000000000000000000000000000400000000000A13EC0000017200FA01F41388000000080001006416800000000000000000000000000001000000100000168012200C7A0C7108720657010400C801010A2500A0000A00000000000000000000B1D0
+Port	5000	4	System fault word0	1001	0	
+mode	1	4	System fault word1	1002	0	
+Slave ID	1	4	System fault word2	1003	0	
+First Register	1000	4	System fault word3	1004	0	
+No. of Registers	125	4	System fault word4	1005	32	
+Record size	5	4	System fault word5	1006	0	
+byte order	1	4	System fault word6	1007	0	
+word order	1	4	System fault word7	1008	3072	
+autoset	0	1	Discharge power 0.1W	1009	0	
+Function Code	4	1	Charge power 0.1W	1011	0	
+register size	1	4	Battery voltage 0.1V	1013	5100	
+offset	0	4	State of charge 1%	1014	10	
+Events	0	4	AC to user L1 High	1015	0	
+History	0	4	AC to user L1 Low	1016	4400	
+2 byte addr	0	4	AC to user L2 High	1017	97	
+fail in	5	4	AC to user L2 Low	1018	210	
+pause	10	4	AC to user L3 High	1019	139	
+start	0	4	AC to user L3 Low	1020	0	
+loadB4send	0	4	AC to user total Hi	1021	0	
+Log Results	0	4	AC to user total Lo	1022	4400	
+quit	0	4	AC to grid L1 High	1023	0	
+		4	AC to grid L1 Low	1024	0	
+		4	AC to grid L2 High	1025	97	
+		4	AC to grid L2 Low	1026	240	
+		4	AC to grid L3 High	1027	148	
+		3	AC to grid L3 Low	1028	0	
+		4	AC to grid total High	1029	0	
+		4	AC to grid total Low	1030	0	
+		4	INV to local L1 High	1031	0	
+		4	INV to local L1 Low	1032	4400	
+		4	INV to local L2 High	1033	0	
+		4	INV to local L2 Low	1034	0	
+		4	INV to local L3 High	1035	30	
+		4	INV to local L3 Low	1036	9	
+		4	INV to local total High	1037	0	
+		4	INV to local total Low	1038	4400	
+		4	IPM Temperature	1039	0	
+		4	Battery Temperature	1040	260	
+		4		1041	6	
+		4		1042	7048	
+		4		1043	250	
+		1	Energy to user today	1044	22	
+		1	Energy to user total	1046	555	
+		1	Energy to grid today	1048	0	
+		1	Energy to grid total	1050	5	
+		1	Discharge energy1 today	1052	14	
+		1	Total discharge energy1	1054	245	
+		1	Charge1 energy today	1056	1	
+		1	Charge1 energy tota	1058	450	
+		1	Local load energy today	1060	35	
+		1	Local load energy total	1062	615	
+		4		1064	0	
+		4		1065	0	
+		4		1066	0	
+		4	UPS frequency	1067	0	
+		4	 UPS voltage L1	1068	2299	
+		4	UPS output current L1	1069	0	
+		1	UPS Output L1 Watt	1070	0	
+		4	 UPS voltage L2	1072	2311	
+		1	UPS output current L2	1073	0	
+		4	UPS Output L2 Watt	1075	0	
+		4	 UPS voltage L3	1076	2273	
+		4	UPS output current L3	1077	0	
+		1	UPS Output L3 Watt	1078	0	
+		4	UPS Load Percentage	1080	0	
+		4	UPS Power Factor	1081	0	
+		4	BMS Status Old	1082	0	
+		4	BMS Status	1083	4	
+		4	BMS Error Old	1084	0	
+		4	BMS Error	1085	0	
+		4	State of Charge	1086	10	
+		4	Battery Voltage 0.1V	1087	5100	
+		4	Battery Current	1088	0	
+		4	Battery Temp 0.1°	1089	370	
+		4	Max Current	1090	250	
+		4	Gauge RM	1091	500	
+		4	Gauge FCC	1092	5000	
+		4	Firmware	1093	0	
+		4	Delta V	1094	8	
+		4	Cycle Count	1095	1	
+		4	SOH	1096	100	
+		4	CV Voltage	1097	5760	
+		4	Warning info Old	1098	0	
+		4	Warning info	1099	0	
+		4	Gauge IC Current	1100	0	
+		4	MCU Version	1101	0	
+		4	Gauge Version	1102	0	
+		1	Gauge FR Version	1103	1	
+		4	BMS Info	1105	0	
+		4	Pack Info	1106	16	
+		4	Using Cap	1107	0	
+		4	Cell 1 Voltage	1108	5760	
+		4	Cell 2 Voltage	1109	4640	
+		4	Cell 3 Voltage	1110	3194	
+		4	Cell 4 Voltage	1111	3185	
+		4	Cell 5 Voltage	1112	2162	
+		4	Cell 6 Voltage	1113	1623	
+		4	Cell 7 Voltage	1114	260	
+		4	Cell 8 Voltage	1115	200	
+		4	Cell 9 Voltage	1116	257	
+		4	Cell 10 Voltage	1117	2597	
+		4	Cell 11 Voltage	1118	160	
+		4	Cell 12 Voltage	1119	10	
+		4	Cell 13 Voltage	1120	0	
+		4	Cell 14 Voltage	1121	0	
+		4	Cell 15 Voltage	1122	0	
+		4	Cell 16 Voltage	1123	0	
+		4		1124	0	
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		4				
+		0				
