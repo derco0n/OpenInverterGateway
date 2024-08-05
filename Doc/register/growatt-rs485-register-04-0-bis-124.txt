@@ -1,0 +1,500 @@
+IP Address	127.0.0.1	3	Inverter Status	0	6	0104FA00060000000000000000000000000000000000000000000112050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001FA13840FAA00060000116E0FAE0006000000000F98000600000000000000000000000000290000022F000E303000000000000000810000000100000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001010148013601350000143D1B8E000000000000000000000000000000000000000000000000000000000069000002AB0000000000010001000000000000000000006CA3
+Port	5000	1	Input power W	1	0	
+mode	1	3	PV1 voltage V	3	0	
+Slave ID	1	3	PV1 input current A	4	0	
+First Register	0	1	PV1 input power W	5	0	
+No. of Registers	125	3	PV2 voltage V	7	0	
+Record size	5	3	PV2 input current A	8	0	
+byte order	1	1	PV2 input power W	9	0	
+word order	1	3	PV3 voltage	11	1	
+autoset	0	3	PV3 input current A	12	4613	
+Function Code	4	1	PV2 input power W	13	0	
+register size	1	3		15	0	
+offset	0	3		16	0	
+Events	0	3		17	0	
+History	0	3		18	0	
+2 byte addr	0	3		19	0	
+fail in	5	3		20	0	
+pause	10	3		21	0	
+start	0	3		22	0	
+loadB4send	0	3		23	0	
+Log Results	0	3		24	0	
+quit	0	3		25	0	
+		3		26	0	
+		3		27	0	
+		3		28	0	
+		3		29	0	
+		3		30	0	
+		3		31	0	
+		3		32	0	
+		3		33	0	
+		3		34	0	
+		3		35	0	
+		3	Grid frequency	36	506	
+		3	Grid L1 voltage	37	4996	
+		3	  Grid L1 current	38	4010	
+		1	Grid L1 watt	39	393216	
+		3	Grid L2 voltage	41	4462	
+		3	  Grid L2 current	42	4014	
+		1	Grid L2 watt	43	393216	
+		3	Grid L3 voltage	45	0	
+		3	  Grid L3 current	46	3992	
+		1	Grid L3 watt	47	393216	
+		3	RS grid voltage	49	0	
+		3	ST grid voltage	50	0	
+		3	TR grid voltage	51	0	
+		3		52	0	
+		1	Today generate energy	53	41	
+		1	Total generate energy	55	559	
+		1	Work time total (s)	57	929840	
+		1	PV1 Energy today	59	0	
+		1	PV1 Energy total	61	129	
+		1	PV2 Energy today	63	1	
+		1	PV2 Energy total	65	128	
+		1	PV3 Energy today	67	0	
+		1	PV3 Energy total	69	0	
+		1	PV4 Energy today	71	0	
+		1	PV4 Energy total	73	0	
+		1	PV5 Energy today	75	0	
+		1	PV5 Energy total	77	0	
+		1	PV6 Energy today	79	0	
+		1	PV6 Energy total	81	0	
+		1	PV7 Energy today	83	0	
+		1	PV7 Energy total	85	0	
+		1	PV8 Energy today	87	0	
+		1	PV8 Energy total	89	0	
+		1	PV Energy total	91	257	
+		3	Inverter temperature	93	328	
+		3	The inside IPM in inverter Temperature	94	310	
+		3	Boost temperature	95	309	
+		3	reserved	96	0	
+		3	reserved	97	5181	
+		3	P-BUS Voltage	98	7054	
+		3	N-BUS Voltage	99	0	
+		3		100	0	
+		3		101	0	
+		3		102	0	
+		3		103	0	
+		3		104	0	
+		3		105	0	
+		3		106	0	
+		3		107	0	
+		3		108	0	
+		3		109	0	
+		3		110	0	
+		3		111	0	
+		3		112	0	
+		3		113	105	
+		3		114	0	
+		3		115	683	
+		3		116	0	
+		3		117	0	
+		3		118	1	
+		3		119	1	
+		3		120	0	
+		3		121	0	
+		3		122	0	
+		3		123	0	
+		3		124	0	
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
+		3				
