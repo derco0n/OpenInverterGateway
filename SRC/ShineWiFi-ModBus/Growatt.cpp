@@ -15,6 +15,8 @@
 #include "Growatt124.h"
 #elif GROWATT_MODBUS_VERSION == 305
 #include "Growatt305.h"
+#elif GROWATT_MODBUS_VERSION == 3000
+#include "GrowattTLXH.h"
 #elif GROWATT_MODBUS_VERSION == 5000
 #include "GrowattSPF.h"
 #elif GROWATT_MODBUS_VERSION == 6000
@@ -65,6 +67,8 @@ void Growatt::InitProtocol() {
   init_growatt124(_Protocol, *this);
 #elif GROWATT_MODBUS_VERSION == 305
   init_growatt305(_Protocol, *this);
+#elif GROWATT_MODBUS_VERSION == 3000
+  init_growattTLXH(_Protocol, *this);
 #elif GROWATT_MODBUS_VERSION == 5000
   init_growattSPF(_Protocol, *this);
 #elif GROWATT_MODBUS_VERSION == 6000
@@ -93,6 +97,7 @@ void Growatt::begin(Stream& serial) {
     delay(1000);
     Serial.begin(115200);
     Modbus.begin(1, serial);
+    Modbus.setResponseTimeout(250);
     res = Modbus.readInputRegisters(0, 1);
     if (res == Modbus.ku8MBSuccess) {
       _eDevice = ShineWiFi_X;  // USB
@@ -118,6 +123,7 @@ bool Growatt::ReadInputRegisters() {
    */
   uint16_t registerAddress;
   uint8_t res;
+  int j = 0;
 
   // read each fragment separately
   for (int i = 0; i < _Protocol.InputFragmentCount; i++) {
@@ -133,7 +139,7 @@ bool Growatt::ReadInputRegisters() {
 #ifdef DEBUG_MODBUS_OUTPUT
       Log.println(F("ok"));
 #endif
-      for (int j = 0; j < _Protocol.InputRegisterCount; j++) {
+      for (; j < _Protocol.InputRegisterCount; j++) {
         // make sure the register we try to read is in the fragment
         if (_Protocol.InputRegisters[j].address >=
             _Protocol.InputReadFragments[i].StartAddress) {
@@ -165,6 +171,12 @@ bool Growatt::ReadInputRegisters() {
       return false;
     }
   }
+#if GROWATT_MODBUS_VERSION == 3000
+  _Protocol.InputRegisters[P3000_INVERTER_STATUS].value &= 0xff;
+  _Protocol.InputRegisters[P3000_INVERTER_RUNSTATE].value >>= 8;
+  _Protocol.InputRegisters[P3000_BDC_SYSSTATE].value &= 0xff;
+  _Protocol.InputRegisters[P3000_BDC_SYSMODE].value >>= 8;
+#endif
   return true;
 }
 
@@ -430,7 +442,27 @@ double Growatt::getRegValue(sGrowattModbusReg_t* reg) {
   return result;
 }
 
-void Growatt::CreateJson(ShineJsonDocument& doc, String MacAddress) {
+bool Growatt::GetSingleValueByName(const String& name, double& value) {
+  for (int i = 0; i < _Protocol.InputRegisterCount; i++) {
+    if (name.equalsIgnoreCase(_Protocol.InputRegisters[i].name)) {
+      value = getRegValue(&_Protocol.InputRegisters[i]);
+      return true;
+    }
+  }
+  for (int i = 0; i < _Protocol.HoldingRegisterCount; i++) {
+    if (name.equalsIgnoreCase(_Protocol.HoldingRegisters[i].name)) {
+      value = getRegValue(&_Protocol.HoldingRegisters[i]);
+      return true;
+    }
+  }
+  return false;
+}
+
+void Growatt::CreateJson(JsonDocument& doc, const String& MacAddress,
+                         const String& Hostname) {
+  if (!Hostname.isEmpty()) {
+    doc["Hostname"] = Hostname;
+  }
 #if SIMULATE_INVERTER != 1
   for (int i = 0; i < _Protocol.InputRegisterCount; i++)
     doc[_Protocol.InputRegisters[i].name] =
@@ -456,13 +488,48 @@ void Growatt::CreateJson(ShineJsonDocument& doc, String MacAddress) {
 #endif  // SIMULATE_INVERTER
   doc["Mac"] = MacAddress;
   doc["Cnt"] = _PacketCnt;
+  doc["Uptime"] = millis() / 1000;
+  doc["WifiRSSI"] = WiFi.RSSI();
+  doc["HeapFree"] = ESP.getFreeHeap();
+#ifdef ESP32
+  doc["HeapSize"] = ESP.getHeapSize();
+  doc["HeapMaxAlloc"] = ESP.getMaxAllocHeap();
+  doc["HeapMinFree"] = ESP.getMinFreeHeap();
+  doc["HeapFragmentation"] =
+      100 - (100 * ESP.getMaxAllocHeap() / ESP.getFreeHeap());
+#else
+  static uint32_t heap_min_free = ESP.getFreeHeap();
+  heap_min_free = min(ESP.getFreeHeap(), heap_min_free);
+  doc["HeapMaxAlloc"] = ESP.getMaxFreeBlockSize();
+  doc["HeapMinFree"] = heap_min_free;
+  doc["HeapFragmentation"] = ESP.getHeapFragmentation();
+#endif
+
+  if (doc.overflowed()) {
+    Log.println(
+        F("WARN CreateJson: JsonDocument overflowed! Output will be "
+          "truncated."));
+  }
 }
 
-void Growatt::CreateUIJson(ShineJsonDocument& doc) {
+void Growatt::CreateUIJson(JsonDocument& doc, const String& Hostname) {
 #if SIMULATE_INVERTER != 1
-  const char* unitStr[] = {"", "W", "kWh", "V", "A", "s", "%", "Hz", "°C"};
+  const char* unitStr[] = {"",   "W",  "kWh", "V",  "A",    "s",  "%",
+                           "Hz", "°C", "VA",  "mA", "kOhm", "var"};
   const char* statusStr[] = {"(Waiting)", "(Normal Operation)", "", "(Error)"};
   const int statusStrLength = sizeof(statusStr) / sizeof(char*);
+  const char* priorityStr[] = {"(Load First)", "(Battery First)",
+                               "(Grid First)"};
+  const int priorityStrLength = sizeof(priorityStr) / sizeof(char*);
+  const char* bdcModeStr[] = {"(idle)", "(charging)", "(discharging)"};
+  const int bdcModeStrLength = sizeof(bdcModeStr) / sizeof(char*);
+
+  if (!Hostname.isEmpty()) {
+    JsonArray arr = doc.createNestedArray("Hostname");
+    arr.add(Hostname);
+    arr.add("");
+    arr.add(false);
+  }
 
   for (int i = 0; i < _Protocol.InputRegisterCount; i++) {
     if (_Protocol.InputRegisters[i].frontend == true ||
@@ -470,19 +537,19 @@ void Growatt::CreateUIJson(ShineJsonDocument& doc) {
       JsonArray arr = doc.createNestedArray(_Protocol.InputRegisters[i].name);
 
       // value
-      if (_Protocol.InputRegisters[i].multiplier ==
-          (int)_Protocol.InputRegisters[i].multiplier) {
-        arr.add(_Protocol.InputRegisters[i].value *
-                _Protocol.InputRegisters[i].multiplier);
-      } else {
-        arr.add(roundByResolution(_Protocol.InputRegisters[i].value *
-                                      _Protocol.InputRegisters[i].multiplier,
-                                  _Protocol.InputRegisters[i].resolution));
-      }
-      if (String(_Protocol.InputRegisters[i].name) == F("InverterStatus") &&
+      arr.add(getRegValue(&_Protocol.InputRegisters[i]));
+
+      if ((String(_Protocol.InputRegisters[i].name) == F("InverterStatus") ||
+           String(_Protocol.InputRegisters[i].name) == F("BDCSysState")) &&
           _Protocol.InputRegisters[i].value < statusStrLength) {
         arr.add(statusStr[_Protocol.InputRegisters[i].value]);  // use unit for
                                                                 // status
+      } else if (String(_Protocol.InputRegisters[i].name) == F("BDCSysMode") &&
+                 _Protocol.InputRegisters[i].value < bdcModeStrLength) {
+        arr.add(bdcModeStr[_Protocol.InputRegisters[i].value]);
+      } else if (String(_Protocol.InputRegisters[i].name) == F("Priority") &&
+                 _Protocol.InputRegisters[i].value < priorityStrLength) {
+        arr.add(priorityStr[_Protocol.InputRegisters[i].value]);
       } else {
         arr.add(unitStr[_Protocol.InputRegisters[i].unit]);  // unit
       }
@@ -495,15 +562,8 @@ void Growatt::CreateUIJson(ShineJsonDocument& doc) {
       JsonArray arr = doc.createNestedArray(_Protocol.HoldingRegisters[i].name);
 
       // value
-      if (_Protocol.HoldingRegisters[i].multiplier ==
-          (int)_Protocol.HoldingRegisters[i].multiplier) {
-        arr.add(_Protocol.HoldingRegisters[i].value *
-                _Protocol.HoldingRegisters[i].multiplier);
-      } else {
-        arr.add(roundByResolution(_Protocol.HoldingRegisters[i].value *
-                                      _Protocol.HoldingRegisters[i].multiplier,
-                                  _Protocol.HoldingRegisters[i].resolution));
-      }
+      arr.add(getRegValue(&_Protocol.HoldingRegisters[i]));
+
       if (String(_Protocol.HoldingRegisters[i].name) == F("InverterStatus") &&
           _Protocol.HoldingRegisters[i].value < statusStrLength) {
         arr.add(statusStr[_Protocol.HoldingRegisters[i].value]);  // use unit
@@ -565,13 +625,20 @@ void Growatt::CreateUIJson(ShineJsonDocument& doc) {
   arr.add("kWh");
   arr.add(false);
 #endif  // SIMULATE_INVERTER
+
+  if (doc.overflowed()) {
+    Log.println(
+        F("WARN CreateUIJson: JsonDocument overflowed! Output will be "
+          "truncated."));
+  }
 }
 
-void Growatt::camelCaseToSnakeCase(String input, char* output) {
+void Growatt::camelCaseToSnakeCase(const String& input, char* output) {
   int outputIndex = 0;
-  for (int i = 0; input[i] != '\0'; i++) {
-    if (i > 0 && i < input.length() - 1 && isUpperCase(input[i]) &&
-        (isLowerCase(input[i - 1]) || isLowerCase(input[i + 1]))) {
+  for (uint i = 0; input[i] != '\0'; i++) {
+    if (i > 0 && isUpperCase(input[i]) &&
+        (isLowerCase(input[i - 1]) ||
+         (i < input.length() - 1 && isLowerCase(input[i + 1])))) {
       output[outputIndex++] = '_';
     }
     output[outputIndex++] = toLowerCase(input[i]);
@@ -579,46 +646,72 @@ void Growatt::camelCaseToSnakeCase(String input, char* output) {
   output[outputIndex] = '\0';
 }
 
-void Growatt::metricsAddValue(String name, double value, StringStream& metrics,
-                              String MacAddress) {
+void Growatt::metricsAddValue(const String& name, const double& value,
+                              const float& resolution, String& metrics,
+                              const String& labels) {
+  const String svalue =
+      (resolution == 1) ? String((int32_t)value) : String(value);
   char nameSnakeCase[name.length() + 10];
   camelCaseToSnakeCase(name, nameSnakeCase);
-
-  metrics.print("growatt_");
-  metrics.print(nameSnakeCase);
-  metrics.print("{mac=\"");
-  metrics.print(MacAddress);
-  metrics.printf("\"} %g\n", value);
+  metrics +=
+      "growatt_" + String(nameSnakeCase) + "{" + labels + "} " + svalue + "\n";
 }
 
-void Growatt::CreateMetrics(StringStream& metrics, String MacAddress) {
+void Growatt::CreateMetrics(String& metrics, const String& MacAddress,
+                            const String& Hostname) {
+  String labels;
+  if (Hostname == DEFAULT_HOSTNAME) {
+    labels = "mac=\"" + MacAddress + "\"";
+  } else {
+    labels = "mac=\"" + MacAddress + "\",name=\"" + Hostname + "\"";
+  }
 #if SIMULATE_INVERTER != 1
   for (int i = 0; i < _Protocol.InputRegisterCount; i++)
     metricsAddValue(_Protocol.InputRegisters[i].name,
-                    getRegValue(&_Protocol.InputRegisters[i]), metrics,
-                    MacAddress);
+                    getRegValue(&_Protocol.InputRegisters[i]),
+                    _Protocol.InputRegisters[i].resolution, metrics, labels);
 
   for (int i = 0; i < _Protocol.HoldingRegisterCount; i++)
     metricsAddValue(_Protocol.HoldingRegisters[i].name,
-                    getRegValue(&_Protocol.HoldingRegisters[i]), metrics,
-                    MacAddress);
+                    getRegValue(&_Protocol.HoldingRegisters[i]),
+                    _Protocol.HoldingRegisters[i].resolution, metrics, labels);
 
 #else
 #warning simulating the inverter
-  metricsAddValue("Status", 1, metrics, MacAddress);
-  metricsAddValue("DcPower", 230, metrics, MacAddress);
-  metricsAddValue("DcVoltage", 70.5, metrics, MacAddress);
-  metricsAddValue("DcInputCurrent", 8.5, metrics, MacAddress);
-  metricsAddValue("AcFreq", 50.00, metrics, MacAddress);
-  metricsAddValue("AcVoltage", 230.0, metrics, MacAddress);
-  metricsAddValue("AcPower", 0.00, metrics, MacAddress);
-  metricsAddValue("EnergyToday", 0.3, metrics, MacAddress);
-  metricsAddValue("EnergyTotal", 49.1, metrics, MacAddress);
-  metricsAddValue("OperatingTime", 123456, metrics, MacAddress);
-  metricsAddValue("Temperature", 21.12, metrics, MacAddress);
-  metricsAddValue("AccumulatedEnergy", 320, metrics, MacAddress);
+  metricsAddValue("Status", 1, 1, metrics, labels);
+  metricsAddValue("DcPower", 230, 0.1, metrics, labels);
+  metricsAddValue("DcVoltage", 70.5, 0.1, metrics, labels);
+  metricsAddValue("DcInputCurrent", 8.5, 0.1, metrics, labels);
+  metricsAddValue("AcFreq", 50.00, 0.01, metrics, labels);
+  metricsAddValue("AcVoltage", 230.0, 0.1, metrics, labels);
+  metricsAddValue("AcPower", 0.0, 0.1, metrics, labels);
+  metricsAddValue("EnergyToday", 0.3, 0.1, metrics, labels);
+  metricsAddValue("EnergyTotal", 49.1, 0.1, metrics, labels);
+  metricsAddValue("OperatingTime", 123456, 0.1, metrics, labels);
+  metricsAddValue("Temperature", 21.12, 0.1, metrics, labels);
+  metricsAddValue("AccumulatedEnergy", 320, 0.1, metrics, labels);
 #endif  // SIMULATE_INVERTER
-  metricsAddValue("Cnt", _PacketCnt, metrics, MacAddress);
+  metricsAddValue("Cnt", _PacketCnt, 1, metrics, labels);
+  metricsAddValue("Uptime", millis() / 1000, 1, metrics, labels);
+  metricsAddValue("WifiRSSI", WiFi.RSSI(), 1, metrics, labels);
+
+  metricsAddValue("HeapFree", ESP.getFreeHeap(), 1, metrics, labels);
+#ifdef ESP32
+  metricsAddValue("HeapSize", ESP.getHeapSize(), 1, metrics, labels);
+  metricsAddValue("HeapMaxAlloc", ESP.getMaxAllocHeap(), 1, metrics, labels);
+  metricsAddValue("HeapMinFree", ESP.getMinFreeHeap(), 1, metrics, labels);
+  metricsAddValue("HeapFragmentation",
+                  100 - (100 * ESP.getMaxAllocHeap() / ESP.getFreeHeap()), 1,
+                  metrics, labels);
+#else
+  static uint32_t heap_min_free = ESP.getFreeHeap();
+  heap_min_free = min(ESP.getFreeHeap(), heap_min_free);
+  metricsAddValue("HeapMaxAlloc", ESP.getMaxFreeBlockSize(), 1, metrics,
+                  labels);
+  metricsAddValue("HeapMinFree", heap_min_free, 1, metrics, labels);
+  metricsAddValue("HeapFragmentation", ESP.getHeapFragmentation(), 1, metrics,
+                  labels);
+#endif
 }
 
 void Growatt::RegisterCommand(const String& command,

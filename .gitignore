@@ -9,6 +9,7 @@ CMakeLists*.txt
 
 # PlatformIO
 .pio
+platformio-local.ini
 
 # VisualStudioCode
 .vscode/*
