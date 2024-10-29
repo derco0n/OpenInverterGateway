@@ -13,7 +13,7 @@
 // New protocols can be easily defined by adding new Growatt<version>.cpp/h
 // files and then specifying the protocol there. See existing procol files
 // for reference.
-#define GROWATT_MODBUS_VERSION 124
+#define GROWATT_MODBUS_VERSION 124 // See: README.md#supported-inverters
 
 // On some SPH inverters (Protocol 124) the battery temperature multiplier 
 // differs from the documented value (of 0.1). Set this to 1.0 on these inverters.
@@ -39,6 +39,9 @@
 // if the ping is not successful, the wifi connection will be reestablished
 #define PINGER_SUPPORTED 0
 
+// Enable update over web
+#define UPDATE_SUPPORTED 1
+
 // Setting this define to 1 will enable the debug output via the serial port.
 // The serial port is the same used for the communication to the inverter.
 // Enabling this feature can cause problems with the inverter communication!
@@ -46,7 +49,7 @@
 // #define ENABLE_SERIAL_DEBUG
 
 // define this will enable a web page (<ip>/debug) where debug messages can be displayed
-#define ENABLE_WEB_DEBUG
+#define ENABLE_WEB_DEBUG 1
 // define this will enable Remote Debug
 // #define ENABLE_TELNET_DEBUG
 
@@ -57,11 +60,11 @@
 
 // Enable TLS connection from stick to broker. Make sure to update port and hostname to match the cert
 // of the mqtt broker as well. Change this CERT to your custom mqtt cert.
-//#define MQTTS_BROKER_CA_CERT "-----BEGIN CERTIFICATE-----\n" \
-//     "MIIDSjCCAjKgAwIBAgIQRK+wgNajJ7qJMDmGLvhAazANBgkqhkiG9w0BAQUFADA/\n" \
-//     "....\n" \
-//     "Ob8VZRzI9neWagqNdwvYkQsEjgfbKbYK7p2CNTUQ\n" \
-//     "-----END CERTIFICATE-----\n"
+#define MQTTS_BROKER_CA_CERT "-----BEGIN CERTIFICATE-----\n" \
+     "MIIDSjCCAjKgAwIBAgIQRK+wgNajJ7qJMDmGLvhAazANBgkqhkiG9w0BAQUFADA/\n" \
+     "....\n" \
+     "Ob8VZRzI9neWagqNdwvYkQsEjgfbKbYK7p2CNTUQ\n" \
+     "-----END CERTIFICATE-----\n"
 
 // Setting this flag to 1 will simulate the inverter
 // This could be helpful if it is night and the inverter is not working or
@@ -74,11 +77,11 @@
 // Default IP 192.168.4.1
 // Hold down the Button for a few seconds to enter Access Point mode
 #define DEFAULT_HOSTNAME  "Growatt"
-#define APPassword        "growsolar"
+#define APPassword        "gROOTwatt"
 
 // Username and password for firmware update
 #define UPDATE_USER       "admin"
-#define UPDATE_PASSWORD   "admin"
+#define UPDATE_PASSWORD   "growaTTr00t"
 
 // For boards without any button you can detect double resets with the Double reset detector by setting this to 1
 #define ENABLE_DOUBLE_RESET 0
@@ -95,7 +98,7 @@
 #define WDT_TIMEOUT 300 // 5 min default
 
 #if PINGER_SUPPORTED == 1
-    #define GATEWAY_IP IPAddress(192, 168, 178, 1)
+    #define GATEWAY_IP IPAddress(192, 168, 30, 1)
 #endif
 
 #define LED_GN 0  // GPIO0
